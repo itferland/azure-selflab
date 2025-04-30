@@ -1,0 +1,46 @@
+name: Build and Deploy Node.js App to Azure Web App
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  OKTA_CLIENT_ID: 0oaoj4td6c3bEpJvk5d7
+  OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
+  OKTA_ORG_URL: ${{ secrets.OKTA_ORG_URL }}
+  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+
+    - name: npm install
+      run: npm install
+
+    - name: npm run build
+      run: npm run build --if-present
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'my-node-oksample'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: . 
