@@ -12,9 +12,9 @@ permissions:
 env:
   OKTA_CLIENT_ID: 0oaoj4td6c3bEpJvk5d7
   OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-  OKTA_ORG_URL:     ${{ secrets.OKTA_ORG_URL }}
-  SESSION_SECRET:   ${{ secrets.SESSION_SECRET }}
-  APP_BASE_URL:     ${{ secrets.APP_BASE_URL }}
+  OKTA_ORG_URL: ${{ secrets.OKTA_ORG_URL }}
+  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
 
 jobs:
   build-and-deploy:
@@ -28,23 +28,27 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: npm install
-        run: npm install
+      # Install everything, then strip out dev‐deps
+      - name: Install & prune for production
+        run: |
+          npm install
+          npm prune --production
 
-      - name: npm run build
-        run: npm run build --if-present
+      - name: Verify production deps
+        run: |
+          ls -1 node_modules | head -20
 
-      - name: Azure Login
+      - name: Azure Login (OIDC)
         uses: azure/login@v1
         with:
-          auth-type: service_principal         # use OIDC federated credential when no secret is given
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}      # “github-actions-deploy” App Registration ID
+          auth-type: oidc
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          allow-no-subscriptions: true         # optional for free tiers
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'my-node-oksample'
           package: .
+
