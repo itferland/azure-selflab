@@ -6,49 +6,41 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
+  id-token: write       # Needed for GitHub→Azure OIDC login
   contents: read
-
-env:
-  OKTA_CLIENT_ID: 0oaoj4td6c3bEpJvk5d7
-  OKTA_CLIENT_SECRET: ${{ secrets.OKTA_CLIENT_SECRET }}
-  OKTA_ORG_URL: ${{ secrets.OKTA_ORG_URL }}
-  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-  APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1) Check out your code
       - uses: actions/checkout@v3
 
+      # 2) Install Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
 
-      # Install everything, then strip out dev‐deps
+      # 3) Install all dependencies, then remove dev-dependencies
       - name: Install & prune for production
         run: |
           npm install
           npm prune --production
 
-      - name: Verify production deps
-        run: |
-          ls -1 node_modules | head -20
-
+      # 4) Log in to Azure via OIDC (no client-secret needed)
       - name: Azure Login (OIDC)
         uses: azure/login@v1
         with:
-          auth-type: oidc
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          auth-type: service_principal
+          client-id:     ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # 5) Deploy the already-built app (with node_modules) via ZIP deploy
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'my-node-oksample'
           package: .
-
