@@ -1,37 +1,30 @@
-// app.js
-
 require('dotenv').config();
-
-// DEBUG: make sure Azure App Service is picking up your env-vars
-console.log('>>> OKTA_ISSUER   =', process.env.OKTA_ISSUER);
-console.log('>>> APP_BASE_URL  =', process.env.APP_BASE_URL);
-
-const express       = require('express');
-const session       = require('express-session');
+const express = require('express');
+const session = require('express-session');
 const { ExpressOIDC } = require('@okta/oidc-middleware');
 
-const app  = express();
+const app = express();
 const port = process.env.PORT || 3000;
 
-// ── SESSION SETUP ───────────────────────────────────────────────────────────────
+// Session configuration
 app.use(session({
-  secret:            process.env.SESSION_SECRET || 'dev-secret',
-  resave:            true,
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: true,
   saveUninitialized: false,
   cookie: {
-    secure:   process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge:   24 * 60 * 60 * 1000 // 24h
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
-// ── OKTA OIDC SETUP ─────────────────────────────────────────────────────────────
+// Okta OIDC configuration
 const oidc = new ExpressOIDC({
-  issuer:       process.env.OKTA_ISSUER,      // e.g. https://dev-89878318.okta.com/oauth2/default
-  client_id:    process.env.OKTA_CLIENT_ID,   // from your Okta App Integration
-  client_secret:process.env.OKTA_CLIENT_SECRET,
-  appBaseUrl:   process.env.APP_BASE_URL,     // e.g. https://my-node-oksample-…azurewebsites.net
-  scope:        'openid profile',
+  issuer: process.env.OKTA_ISSUER,          // now reads the full URL directly
+  client_id: process.env.OKTA_CLIENT_ID,
+  client_secret: process.env.OKTA_CLIENT_SECRET,
+  appBaseUrl: process.env.APP_BASE_URL,
+  scope: 'openid profile',
   routes: {
     login: {
       path: '/login'
@@ -43,10 +36,10 @@ const oidc = new ExpressOIDC({
   }
 });
 
-// mount the OIDC router
+// Use OIDC
 app.use(oidc.router);
 
-// ── UNPROTECTED ROUTE ──────────────────────────────────────────────────────────
+// Routes
 app.get('/', (req, res) => {
   if (req.userContext) {
     res.send(`Hello ${req.userContext.userinfo.name}!`);
@@ -55,15 +48,15 @@ app.get('/', (req, res) => {
   }
 });
 
-// ── PROTECTED ROUTE ─────────────────────────────────────────────────────────────
+// Protected route
 app.get('/protected', oidc.ensureAuthenticated(), (req, res) => {
   res.send('This is a protected route');
 });
 
-// ── START SERVER ────────────────────────────────────────────────────────────────
+// Start the server
 oidc.on('ready', () => {
   app.listen(port, () => {
-    console.log(`Server running on ${process.env.APP_BASE_URL} (port ${port})`);
+    console.log(`Server is running on port ${port}`);
   });
 });
 
