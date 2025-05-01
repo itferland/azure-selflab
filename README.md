@@ -17,7 +17,7 @@ This project demonstrates how to integrate Okta Identity and Access Management (
 - GitHub Actions (CI/CD, OIDC)
 - Automation & Security
 
-## How It Works
+## How It Works.
 1. **User Authentication:** Okta handles user login, SSO, and MFA.
 2. **App Deployment:** Code is pushed to GitHub, triggering a workflow that builds and deploys the app to Azure.
 3. **Federated Identity:** GitHub Actions uses OIDC to securely authenticate to Azure without static secrets.
