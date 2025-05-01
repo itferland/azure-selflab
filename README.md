@@ -27,5 +27,6 @@ This project was built to deepen my expertise in IAM, Okta, and cloud automation
 
 ## Repository
 [GitHub Repo](https://github.com/itferland/azure-selflab)
+chore: trigger CI with latest dependencies
 
 ---
