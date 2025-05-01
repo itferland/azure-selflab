@@ -23,7 +23,7 @@ This project demonstrates how to integrate Okta Identity and Access Management (
 3. **Federated Identity:** GitHub Actions uses OIDC to securely authenticate to Azure without static secrets.
 
 ## Why This Project?
-This project was built to deepen my expertise in IAM, Okta, and cloud automation—key skills for modern IT and DevOps roles. It reflects real-world scenarios in enterprise environments and prepares me for advanced roles in IT systems engineering and automation.
+This project was built to deepen my expertise in IAM, Okta, and cloud automation—key skills for modern IT and DevOps roles. It reflects real-world scenarios in enterprise environments.
 
 ## Repository
 [GitHub Repo](https://github.com/itferland/azure-selflab)
